@@ -12,7 +12,6 @@ import aiohttp
 import voluptuous as vol
 
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
@@ -40,15 +39,18 @@ REMOVE_SCHEMA = vol.Schema({
 LIST_SCHEMA = vol.Schema({}, extra=vol.ALLOW_EXTRA)
 
 
-async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
-    """Set up integration via YAML (not used)."""
-    return True
+def _register_service(hass, service, handler, schema):
+    kwargs = {"schema": schema}
+    try:
+        from homeassistant.const import ServiceResponseMode
+        kwargs["supports_response"] = ServiceResponseMode.OPTIONAL
+    except (ImportError, AttributeError):
+        pass
+    hass.services.async_register(DOMAIN, service, handler, **kwargs)
 
 
-async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
-    """Set up integration from config entry."""
-    hass.data.setdefault(DOMAIN, {})
-
+async def _setup_services(hass: HomeAssistant) -> None:
+    """Register all services."""
     session = async_get_clientsession(hass)
 
     async def _download(call: ServiceCall) -> dict | None:
@@ -117,19 +119,19 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         )
         return {"skins": skins}
 
-    def _register(service, handler, schema):
-        kwargs = {"schema": schema}
-        try:
-            from homeassistant.const import ServiceResponseMode
-            kwargs["supports_response"] = ServiceResponseMode.OPTIONAL
-        except (ImportError, AttributeError):
-            pass
-        hass.services.async_register(DOMAIN, service, handler, **kwargs)
+    _register_service(hass, SERVICE_DOWNLOAD, _download, DOWNLOAD_SCHEMA)
+    _register_service(hass, SERVICE_REMOVE, _remove, REMOVE_SCHEMA)
+    _register_service(hass, SERVICE_LIST, _list, LIST_SCHEMA)
 
-    _register(SERVICE_DOWNLOAD, _download, DOWNLOAD_SCHEMA)
-    _register(SERVICE_REMOVE, _remove, REMOVE_SCHEMA)
-    _register(SERVICE_LIST, _list, LIST_SCHEMA)
 
+async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
+    """Set up integration - register services immediately on install + restart."""
+    await _setup_services(hass)
+    return True
+
+
+async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+    """Set up integration from config entry (services already registered in async_setup)."""
     return True
 
 
