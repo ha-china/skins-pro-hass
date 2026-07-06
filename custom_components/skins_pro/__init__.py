@@ -22,7 +22,7 @@ LOGGER = logging.getLogger(__name__)
 
 CDN_BASE = "https://cdn.jsdelivr.net/gh/ha-china/Skins-Pro@master"
 SKINS_DIR = "skins-pro"
-SKIN_ID_PATTERN = r"^[a-z0-9][a-z0-9_-]*$"
+SKIN_ID_PATTERN = r"^[a-zA-Z0-9][a-zA-Z0-9_-]*$"
 
 SERVICE_DOWNLOAD = "download_skin"
 SERVICE_REMOVE = "remove_skin"
