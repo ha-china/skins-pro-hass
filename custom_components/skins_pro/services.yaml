@@ -1,0 +1,27 @@
+download_skin:
+  name: Download skin
+  description: Download and install a skin theme from the CDN.
+  fields:
+    skin_id:
+      name: Skin ID
+      description: Unique identifier of the skin (e.g. "mario", "sky")
+      required: true
+      example: "mario"
+      selector:
+        text:
+
+remove_skin:
+  name: Remove skin
+  description: Delete a previously downloaded skin theme.
+  fields:
+    skin_id:
+      name: Skin ID
+      description: Identifier of the skin to remove
+      required: true
+      example: "mario"
+      selector:
+        text:
+
+list_skins:
+  name: List skins
+  description: List all currently installed skin themes.

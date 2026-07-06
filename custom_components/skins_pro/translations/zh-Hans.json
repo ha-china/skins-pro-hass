@@ -1,0 +1,27 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Skins Pro",
+        "description": "启用 Skins Pro 集成以下载和管理 Lovelace 卡片主题。"
+      }
+    },
+    "abort": {
+      "single_instance_allowed": "只允许创建一个 Skins Pro 实例。"
+    }
+  },
+  "services": {
+    "download_skin": {
+      "name": "下载主题",
+      "description": "从 CDN 下载并安装主题到 Home Assistant。"
+    },
+    "remove_skin": {
+      "name": "移除主题",
+      "description": "删除已下载的主题。"
+    },
+    "list_skins": {
+      "name": "列出主题",
+      "description": "列出所有已安装的主题。"
+    }
+  }
+}
