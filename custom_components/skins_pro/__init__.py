@@ -125,13 +125,13 @@ async def _setup_services(hass: HomeAssistant) -> None:
 
 
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
-    """Set up integration - register services immediately on install + restart."""
-    await _setup_services(hass)
+    """Set up integration via YAML (not used)."""
     return True
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
-    """Set up integration from config entry (services already registered in async_setup)."""
+    """Set up integration from config entry."""
+    await _setup_services(hass)
     return True
 
 
