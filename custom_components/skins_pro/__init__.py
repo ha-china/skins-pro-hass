@@ -141,6 +141,9 @@ async def _setup_services(hass: HomeAssistant) -> None:
     _register_service(hass, SERVICE_LIST, _list, LIST_SCHEMA)
 
 
+CONFIG_SCHEMA = cv.empty_config_schema(DOMAIN)
+
+
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     """Set up integration via YAML (not used)."""
     return True
