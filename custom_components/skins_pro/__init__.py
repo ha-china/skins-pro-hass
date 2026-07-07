@@ -5,6 +5,7 @@ import logging
 import os
 import shutil
 import zipfile
+from functools import partial
 from io import BytesIO
 from pathlib import Path
 
@@ -49,6 +50,40 @@ def _register_service(hass, service, handler, schema):
     hass.services.async_register(DOMAIN, service, handler, **kwargs)
 
 
+def _blocking_extract(data: bytes, target: str) -> None:
+    """Extract skin zip to target directory. Runs in executor thread."""
+    with zipfile.ZipFile(BytesIO(data)) as zf:
+        for member in zf.namelist():
+            parts = member.split("/", 1)
+            if len(parts) < 2 or not parts[1]:
+                continue
+            dest = os.path.join(target, parts[1])
+            if member.endswith("/"):
+                os.makedirs(dest, exist_ok=True)
+            else:
+                os.makedirs(os.path.dirname(dest), exist_ok=True)
+                with zf.open(member) as src, open(dest, "wb") as dst:
+                    shutil.copyfileobj(src, dst)
+
+
+def _blocking_remove(path: str) -> bool:
+    """Remove a skin directory. Returns True if removed."""
+    if os.path.exists(path):
+        shutil.rmtree(path)
+        return True
+    return False
+
+
+def _blocking_list_skins(www_skins: str) -> list[str]:
+    """List downloaded skin directories."""
+    if not os.path.isdir(www_skins):
+        return []
+    return sorted(
+        d.name for d in Path(www_skins).iterdir()
+        if d.is_dir() and not d.name.startswith(".")
+    )
+
+
 async def _setup_services(hass: HomeAssistant) -> None:
     """Register all services."""
     session = async_get_clientsession(hass)
@@ -58,9 +93,8 @@ async def _setup_services(hass: HomeAssistant) -> None:
         www_skins = hass.config.path("www", SKINS_DIR)
         target = hass.config.path("www", SKINS_DIR, skin_id)
 
-        os.makedirs(www_skins, exist_ok=True)
-        if os.path.exists(target):
-            shutil.rmtree(target)
+        await hass.async_add_executor_job(partial(os.makedirs, www_skins, exist_ok=True))
+        removed = await hass.async_add_executor_job(_blocking_remove, target)
 
         url = f"{CDN_BASE}/store/{skin_id}.zip"
         LOGGER.debug("Downloading skin '%s' from %s", skin_id, url)
@@ -77,22 +111,10 @@ async def _setup_services(hass: HomeAssistant) -> None:
             return {"success": False, "error": str(err)}
 
         try:
-            with zipfile.ZipFile(BytesIO(data)) as zf:
-                for member in zf.namelist():
-                    parts = member.split("/", 1)
-                    if len(parts) < 2 or not parts[1]:
-                        continue
-                    dest = os.path.join(target, parts[1])
-                    if member.endswith("/"):
-                        os.makedirs(dest, exist_ok=True)
-                    else:
-                        os.makedirs(os.path.dirname(dest), exist_ok=True)
-                        with zf.open(member) as src, open(dest, "wb") as dst:
-                            shutil.copyfileobj(src, dst)
+            await hass.async_add_executor_job(_blocking_extract, data, target)
         except Exception as err:
             LOGGER.error("Extraction failed for '%s': %s", skin_id, err)
-            if os.path.exists(target):
-                shutil.rmtree(target)
+            await hass.async_add_executor_job(partial(shutil.rmtree, target, ignore_errors=True))
             return {"success": False, "error": f"Extraction failed: {err}"}
 
         LOGGER.info("Skin '%s' installed successfully", skin_id)
@@ -104,19 +126,14 @@ async def _setup_services(hass: HomeAssistant) -> None:
     async def _remove(call: ServiceCall) -> dict:
         skin_id = call.data["skin_id"]
         target = hass.config.path("www", SKINS_DIR, skin_id)
-        if os.path.exists(target):
-            shutil.rmtree(target)
+        removed = await hass.async_add_executor_job(_blocking_remove, target)
+        if removed:
             LOGGER.info("Skin '%s' removed", skin_id)
         return {"success": True}
 
     async def _list(_call: ServiceCall) -> dict:
         www_skins = hass.config.path("www", SKINS_DIR)
-        if not os.path.isdir(www_skins):
-            return {"skins": []}
-        skins = sorted(
-            d.name for d in Path(www_skins).iterdir()
-            if d.is_dir() and not d.name.startswith(".")
-        )
+        skins = await hass.async_add_executor_job(_blocking_list_skins, www_skins)
         return {"skins": skins}
 
     _register_service(hass, SERVICE_DOWNLOAD, _download, DOWNLOAD_SCHEMA)
