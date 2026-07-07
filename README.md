@@ -28,6 +28,17 @@ Remove a previously installed skin.
 
 List all installed skins. Returns `{"skins": ["mario", "sky", ...]}`.
 
+## How it works
+
+When the Skins Pro Lovelace card calls `skins_pro.download_skin`, this integration:
+
+1. Fetches the skin package (`.zip`) from the jsDelivr CDN — no external server needed.
+2. Extracts it to `<config>/www/skins-pro/<skin_id>/` on your Home Assistant server.
+3. The card loads assets (images, CSS) directly from `/local/skins-pro/<skin_id>/` — no browser upload, no YAML config.
+4. Downloaded skins appear in the card editor with a "(Downloaded)" suffix; bundled skins continue to load from the card's CDN.
+
+> All data stays on your server. The CDN is only used to fetch the initial package. Once installed, the skin runs entirely from local files.
+
 ## Installation
 
 [![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=ha-china&repository=skins-pro-hass&category=integration)
