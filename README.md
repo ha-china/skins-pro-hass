@@ -30,7 +30,9 @@ List all installed skins. Returns `{"skins": ["mario", "sky", ...]}`.
 
 ## Installation
 
-1. Add this repository to HACS as a custom integration repository.
+[![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=ha-china&repository=skins-pro-hass&category=integration)
+
+1. Click the badge above to add this repository to HACS, or manually add `https://github.com/ha-china/skins-pro-hass` as a custom integration repository in HACS.
 2. Search for "Skins Pro" in HACS and install.
 3. Restart Home Assistant.
 4. Go to **Settings → Devices & Services → Add Integration → Skins Pro**.
