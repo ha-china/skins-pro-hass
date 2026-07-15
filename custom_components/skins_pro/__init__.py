@@ -21,7 +21,7 @@ from homeassistant.helpers.typing import ConfigType
 DOMAIN = "skins_pro"
 LOGGER = logging.getLogger(__name__)
 
-CDN_BASE = "https://cdn.jsdelivr.net/gh/ha-china/Skins-Pro@store"
+CDN_BASE = "https://skins.hachina.dpdns.org"
 SKINS_DIR = "skins-pro"
 SKIN_ID_PATTERN = r"^[a-zA-Z0-9][a-zA-Z0-9_-]*$"
 

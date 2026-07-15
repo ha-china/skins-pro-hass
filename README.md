@@ -8,7 +8,7 @@ Provides services to download, list, and remove skin themes from the Lovelace ca
 
 ### `skins_pro.download_skin`
 
-Download and install a skin theme from the CDN.
+Download and install a skin theme from the skin store.
 
 | Field | Type | Description |
 |-------|------|-------------|
@@ -32,12 +32,12 @@ List all installed skins. Returns `{"skins": ["mario", "sky", ...]}`.
 
 When the Skins Pro Lovelace card calls `skins_pro.download_skin`, this integration:
 
-1. Fetches the skin package (`.zip`) from the [Skins-Pro store branch](https://github.com/ha-china/Skins-Pro/tree/store) via jsDelivr CDN — no external server needed.
+1. Fetches the skin package (`.zip`) from the skin store hosted on Cloudflare R2.
 2. Extracts it to `<config>/www/skins-pro/<skin_id>/` on your Home Assistant server.
 3. The card loads assets (images, CSS) directly from `/local/skins-pro/<skin_id>/` — no browser upload, no YAML config.
-4. Downloaded skins appear in the card editor with a "(Downloaded)" suffix; bundled skins continue to load from the card's CDN.
+4. Downloaded skins appear in the card editor with a "(Downloaded)" suffix; bundled skins continue to load from the card's built-in store.
 
-> All data stays on your server. The CDN is only used to fetch the initial package. Once installed, the skin runs entirely from local files.
+> All data stays on your server. The remote storage is only used to fetch the initial package. Once installed, the skin runs entirely from local files.
 
 ## Installation
 
@@ -63,7 +63,7 @@ After installation, the [Skins Pro Lovelace card](https://github.com/ha-china/Sk
 
 ### `skins_pro.download_skin`
 
-从 CDN 下载并安装皮肤主题。
+从皮肤商店下载并安装皮肤主题。
 
 | 字段 | 类型 | 说明 |
 |-------|------|-------------|
@@ -87,12 +87,12 @@ After installation, the [Skins Pro Lovelace card](https://github.com/ha-china/Sk
 
 当 Skins Pro Lovelace 卡片调用 `skins_pro.download_skin` 时，本集成会执行以下操作：
 
-1. 通过 jsDelivr CDN 从 [Skins-Pro store 分支](https://github.com/ha-china/Skins-Pro/tree/store) 获取皮肤压缩包（`.zip`）——无需外部服务器。
+1. 从托管在 Cloudflare R2 上的皮肤商店获取皮肤压缩包（`.zip`）。
 2. 将其解压到 Home Assistant 服务器的 `<config>/www/skins-pro/<skin_id>/` 目录。
 3. 卡片直接从 `/local/skins-pro/<skin_id>/` 加载资源（图片、CSS）——无需浏览器上传，无需 YAML 配置。
-4. 已下载的皮肤会在卡片编辑器中显示"(Downloaded)"（已下载）后缀；内置皮肤继续从卡片的 CDN 加载。
+4. 已下载的皮肤会在卡片编辑器中显示"(Downloaded)"（已下载）后缀；内置皮肤继续从卡片的内置商店加载。
 
-> 所有数据都保留在你的服务器上。CDN 仅用于获取初始压缩包。安装完成后，皮肤完全从本地文件运行。
+> 所有数据都保留在你的服务器上。远程存储仅用于获取初始压缩包。安装完成后，皮肤完全从本地文件运行。
 
 ## 安装
 
