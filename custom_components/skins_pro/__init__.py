@@ -9,6 +9,8 @@ from functools import partial
 from io import BytesIO
 from pathlib import Path
 
+import asyncio
+
 import aiohttp
 import voluptuous as vol
 
@@ -99,16 +101,29 @@ async def _setup_services(hass: HomeAssistant) -> None:
         url = f"{CDN_BASE}/store/{skin_id}.zip"
         LOGGER.debug("Downloading skin '%s' from %s", skin_id, url)
 
-        try:
-            async with session.get(url, timeout=aiohttp.ClientTimeout(total=60)) as resp:
-                if resp.status != 200:
-                    msg = f"CDN returned HTTP {resp.status} for skin '{skin_id}'"
-                    LOGGER.error(msg)
-                    return {"success": False, "error": msg}
-                data = await resp.read()
-        except Exception as err:
-            LOGGER.error("Download failed for '%s': %s", skin_id, err)
-            return {"success": False, "error": str(err)}
+        last_error = None
+        for attempt in range(1, 6):
+            try:
+                async with session.get(url, timeout=aiohttp.ClientTimeout(total=60)) as resp:
+                    if resp.status != 200:
+                        msg = f"CDN returned HTTP {resp.status} for skin '{skin_id}'"
+                        if attempt < 5:
+                            LOGGER.warning("%s (attempt %d/5), retrying...", msg, attempt)
+                            last_error = msg
+                            await asyncio.sleep(2 ** attempt)
+                            continue
+                        LOGGER.error(msg)
+                        return {"success": False, "error": msg}
+                    data = await resp.read()
+                    break
+            except Exception as err:
+                if attempt < 5:
+                    LOGGER.warning("Download failed for '%s' (attempt %d/5): %s, retrying...", skin_id, attempt, err)
+                    last_error = str(err)
+                    await asyncio.sleep(2 ** attempt)
+                    continue
+                LOGGER.error("Download failed for '%s' after 5 attempts: %s", skin_id, err)
+                return {"success": False, "error": str(err)}
 
         try:
             await hass.async_add_executor_job(_blocking_extract, data, target)
